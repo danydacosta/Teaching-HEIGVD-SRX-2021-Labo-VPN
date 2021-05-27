@@ -108,6 +108,8 @@ Un « protocol » différent de `up` indique la plupart du temps que l’interfa
 
 **Réponse :**  
 
+Les configurations semblent OK.
+
 ---
 
 
@@ -144,6 +146,7 @@ Pour votre topologie il est utile de contrôler la connectivité entre :
 ---
 
 **Réponse :**  
+Les pings ont passé, il a cependent fallu utiliser la commande `ip dhcp` sur VPC pour qu'il reçoive une configuration du DHCP.
 
 ---
 
@@ -167,6 +170,12 @@ Pour déclencher et pratiquer les captures vous allez « pinger » votre routeur
 ---
 
 **Screenshots :**  
+
+Sur R1 :
+![](images/R1_ping.jpg)
+
+La capture sur le routeur R2 :
+![](images/ping1.jpg)
 
 ---
 
@@ -239,6 +248,12 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 
 **Réponse :**  
 
+R1 :
+![](images/R1_policy.jpg)
+
+R2 :
+![](images/R2_policy.jpg)
+
 ---
 
 
@@ -247,6 +262,12 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 ---
 
 **Réponse :**  
+
+R1 :
+![](images/R1_key.jpg)
+
+R2 :
+![](images/R2_key.jpg)
 
 ---
 
@@ -341,6 +362,23 @@ Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avan
 
 **Réponse :**  
 
+R1 a reçu 3 request (le premier ping a timeout), il a donc répondu avec 3 reply :
+![](images/R1_ping2.jpg)
+
+Depuis R2, on peut voir le trafic ISAKMP correspondant aux négociations des SAs et le trafic ESP correspondant aux pings :
+![](images/R2_ping_SA_neg.jpg)
+![](images/R2_ping_encrypted.jpg)
+
+Le trafic ISAKMP avec échange de type **Identity Protection** (IPSec Phase 1) permet de mettre en place un canal sécurisé (authentification des paires) que le trafic ISAKMP **Quick Mode** (IPSec Phase 2) va utiliser pour négocier les SAs.
+
+Les trames ESP (Encapsulating Security Payload) vont contenir les pings encapsulés
+
+Sources :
+- http://www.internet-computer-security.com/VPN-Guide/Main-mode.html
+- http://www.internet-computer-security.com/VPN-Guide/Quick-Mode.html
+- http://www.internet-computer-security.com/VPN-Guide/ESP.html
+
+
 ---
 
 **Question 7: Reportez dans votre rapport une petite explication concernant les différents « timers » utilisés par IKE et IPsec dans cet exercice (recherche Web). :**
@@ -348,6 +386,12 @@ Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avan
 ---
 
 **Réponse :**  
+
+Les timers permettent de gérer le temps de vie des SAs. Dans notre configuration, les SAs sont renouvellées toutes les 5mn et une SA inutilisée pour 15mn est détruite. Avec ce système, une clé compromise (par bruteforce par exemple) ne pourra déchiffrer des données que pour un temps limité. 
+
+Sources :
+- https://networkengineering.stackexchange.com/a/62554
+- https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/sec_conn_dplane/configuration/15-mt/sec-ipsec-data-plane-15-mt-book/sec-ipsec-idle-tmrs.pdf
 
 ---
 
@@ -362,6 +406,8 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 ---
 
 **Réponse :**  
+
+voir https://www.youtube.com/watch?v=ygbluxxns1U
 
 ---
 
