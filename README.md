@@ -254,6 +254,19 @@ R1 :
 R2 :
 ![](images/R2_policy.jpg)
 
+On constate que R1 ne fourni qu'une seule proposal IKE alors que R2 en fourni deux. R2 serait ainsi plus "flexible" dans ses possibilités d'établissement de tunnel VPN.
+
+On constate que chaque proposal décrit :
+- Une priorité (1 étant la priorité la plus élevée)
+- Une méthode de chiffrement pour la protection des données et ainsi assurer la confidentialité
+- Une méthode "Hashed Message Authentication Codes (HMAC)" permettant de s'assurer de l'identité du pair et de l'intégrité des données transportées
+- Une méthode d'authentification, pour s'assurer de l'identité du pair
+- Un groupe Diffie-Hellman, permettant de déterminer la force de l'algorithme de détermination de la clé de chiffrement. L'algorithme sera utilisé pour dériver la clé de chiffrement
+- Une durée de vie de la clé de chiffrement. Après le temps dépassé, il faudra la remplacer
+
+Sources :
+- https://www.cisco.com/c/en/us/td/docs/security/security_management/cisco_security_manager/security_manager/4-4/user/guide/CSMUserGuide_wrapper/vpipsec.html
+
 ---
 
 
@@ -268,6 +281,8 @@ R1 :
 
 R2 :
 ![](images/R2_key.jpg)
+
+Clé de chiffrement partagée par les deux paires. Dans la réalité, une clé plus robuste serait utilisée.
 
 ---
 
@@ -407,6 +422,9 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 **Réponse :**  
 
+On a pu constater dans les captures de la question 6 que le protocole de négociation était Internet Security Association and Key Management Protocol (ISAKMP), aussi appelé Internet Key Exchange (IKE). Le protocole IPSec Encapsulation Security Payload (ESP) est utilisé pour le chiffrement et l'authentification des paquets de données.
+
+Source :
 voir https://www.youtube.com/watch?v=ygbluxxns1U
 
 ---
@@ -418,6 +436,12 @@ voir https://www.youtube.com/watch?v=ygbluxxns1U
 
 **Réponse :**  
 
+Dans la configuration de R2, nous avons spécifié le mode tunnel lorsque nous avons configuré le `transform-set`. Nous avons donc un chiffrement et une authentification du paquet IP complet.
+
+Dans le ping de notre exemple précédent, on constate dans les en-têtes des paquets ESP que les IPs sources et destination correpondent à celles des passerelles. Or, le ping était en provenance du VPC à l'adresse 172.17.1.100 :
+
+![](images/esp_headers.jpg)
+
 ---
 
 
@@ -426,6 +450,20 @@ voir https://www.youtube.com/watch?v=ygbluxxns1U
 ---
 
 **Réponse :**  
+
+Si on reprend l'exemple de notre ping, toute la partie données, entêtes TCP et IP sont chiffrées :
+
+![](images/mode_tunnel.jpg)
+
+Le chiffrement utilisé est AES sur 192 bit comme configuré dans le `transform-set` des routeurs :
+
+```
+crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac
+```
+
+On peut également que c'est bien cet algorithme de chiffrement qui a été négocié durant la phase 1 d'IKE :
+
+![](images/ike_phase1_encryption.jpg)
 
 ---
 
@@ -436,6 +474,12 @@ voir https://www.youtube.com/watch?v=ygbluxxns1U
 
 **Réponse :**  
 
+Les parties du paquet qui sont authentifiées sont les mêmes que celles qui sont chiffrées en ajoutant l'entête ESP. À noter que l'authentification est optionnelle, comme expliqué dans la théorie :
+
+![](images/esp_auth.jpg)
+
+La méthode HMAC utilisée est SHA-1. C'est aussi une information que l'on peut retrouver dans la phase de négociation d'IKE (voir screen question précédente).
+
 ---
 
 
@@ -444,5 +488,10 @@ voir https://www.youtube.com/watch?v=ygbluxxns1U
 ---
 
 **Réponse :**  
+
+Les parties du paquet protégées en intégrité sont les mêmes que celles authentifiées, c.-à-d. l'entête ESP, le payload (entêtes, données), et l'enqueue ESP. Ainsi, l'algorithme cryptographique utilisé est le même que pour l'authentification.
+
+Source :
+- https://blog.finjan.com/encapsulating-security-protocol/ (section "The ESP Authentication Trailer")
 
 ---
